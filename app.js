@@ -3,6 +3,9 @@ var app = express();
 var path = require('path');
 var formidable = require('formidable');
 var fs = require('fs');
+var crypto = require('crypto');
+var filename;
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -24,7 +27,22 @@ app.post('/upload', function(req, res){
   // every time a file has been uploaded successfully,
   // rename it to it's orignal name
   form.on('file', function(field, file) {
+    filename = file.name;
     fs.rename(file.path, path.join(form.uploadDir, file.name));
+    var fd = fs.createReadStream('./uploads/'+filename);
+    var hash = crypto.createHash('md5');
+    hash.setEncoding('hex');
+
+    fd.on('end', function() {
+      hash.end();
+      var hashValueGenerated = hash.read();
+      fs.writeFileSync('./hashfiles/'+hashValueGenerated+'.json', hashValueGenerated  , 'utf-8'); 
+      console.log(hashValueGenerated );
+    });
+
+    // read all file and pipe it (write it) to the hash object
+    fd.pipe(hash);
+
   });
 
   // log any errors that occur
@@ -40,8 +58,11 @@ app.post('/upload', function(req, res){
   // parse the incoming request containing the form data
   form.parse(req);
 
+
 });
 
 var server = app.listen(3000, function(){
   console.log('Server listening on port 3000');
 });
+
+
