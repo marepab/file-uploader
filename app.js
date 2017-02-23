@@ -29,14 +29,14 @@ app.post('/upload', function(req, res){
   form.on('file', function(field, file) {
     filename = file.name;
     fs.rename(file.path, path.join(form.uploadDir, file.name));
-    var fd = fs.createReadStream('./uploads/'+filename);
+    var fd = fs.createReadStream(path.join(__dirname, '/uploads/'+filename));
     var hash = crypto.createHash('md5');
     hash.setEncoding('hex');
 
     fd.on('end', function() {
       hash.end();
       var hashValueGenerated = hash.read();
-      fs.writeFileSync('./hashfiles/'+hashValueGenerated+'.json', hashValueGenerated  , 'utf-8'); 
+      fs.writeFileSync(path.join(__dirname, '/hashfiles/'+hashValueGenerated+'.json'), hashValueGenerated  , 'utf-8'); 
       console.log(hashValueGenerated );
     });
 
